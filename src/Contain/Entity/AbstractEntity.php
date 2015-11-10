@@ -49,9 +49,9 @@ abstract class AbstractEntity implements EntityInterface
     protected $properties = array();
 
     /**
-     * @var \Contain\Entity\Property\Property
+     * @var \Contain\Entity\Property\Property[]
      */
-    protected $property;
+    protected $propertiesObjCache = array();
 
     /**
      * @var TypeManager
@@ -625,8 +625,8 @@ abstract class AbstractEntity implements EntityInterface
      */
     public function property($name, Property $property = null)
     {
-        if ($property) {
-            $this->property = $property;
+        if (array_key_exists($name, $this->propertiesObjCache)) {
+            return $this->propertiesObjCache[$name];
         }
 
         if (!isset($this->properties[$name])) {
@@ -637,18 +637,19 @@ abstract class AbstractEntity implements EntityInterface
             $name = $this->aliases[$name];
         }
 
-        if (!$this->property) {
-            $this->property = new Property();
-            $this->property
-                 ->setParent($this)
-                 ->typeManager($this->typeManager());
+        if (!$property) {
+            $property = new Property();
+            $property->setParent($this)
+                     ->typeManager($this->typeManager());
         }
 
-        if ($this->property->getName() == $name) {
-            return $this->property;
+        if ($property->getName() != $name) {
+            $property = $property->import($this->properties[$name]);
         }
 
-        return $this->property->import($this->properties[$name]);
+        $this->propertiesObjCache[$name] = $property;
+
+        return $property;
     }
 
     /**

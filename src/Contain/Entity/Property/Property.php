@@ -41,6 +41,11 @@ class Property
     protected $type;
 
     /**
+     * @var object
+     */
+    protected $typeObj;
+
+    /**
      * @var mixed
      */
     protected $currentValue;
@@ -244,6 +249,7 @@ class Property
      */
     public function setValue($value)
     {
+
         $this->currentValue = $this->getType()->export($value);
         return $this->save();
     }
@@ -427,7 +433,6 @@ class Property
         if ($type instanceof Type\ListType) {
             return $this->getListValue();
         }
-
         return $type->parse($this->currentValue);
     }
 
@@ -537,10 +542,13 @@ class Property
      */
     public function getType()
     {
-        return $this->typeManager()->type(
-            $this->type,
-            $this->options
-        );
+        if(!$this->typeObj) {
+            $this->typeObj = $this->typeManager()->type(
+                $this->type,
+                $this->options
+            );
+        }
+        return $this->typeObj;
     }
 
     /**
@@ -561,14 +569,16 @@ class Property
      */
     public function setOptions($options)
     {
-        if (!is_array($options) && !$options instanceof Traversable) {
+        if (is_array($options)) {
+            $this->options = $options;
+        } elseif ($options instanceof Traversable) {
+            foreach ($options as $name => $value) {
+                $this->setOption($name, $value);
+            }
+        } else {
             throw new InvalidArgumentException(
                 '$options must be an instance of Traversable or an array.'
             );
-        }
-
-        foreach ($options as $name => $value) {
-            $this->setOption($name, $value);
         }
 
         return $this->save();
