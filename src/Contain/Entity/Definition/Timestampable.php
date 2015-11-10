@@ -38,11 +38,10 @@ class Timestampable extends AbstractDefinition
      */
     public function setUp()
     {
-        $this->setProperty('createdAt', 'dateTime')
-             ->setOption('required', true);
-
-        $this->setProperty('updatedAt', 'dateTime')
-             ->setOption('required', true);
+        $this
+            ->setProperty('createdAt', 'dateTime', array('required' => true))
+            ->setProperty('updatedAt', 'dateTime', array('required' => true))
+        ;
     }
 
     public function init()

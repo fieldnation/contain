@@ -22,7 +22,7 @@ namespace Contain\Entity\Property;
 use Contain\Entity\EntityInterface;
 use Contain\Entity\Exception\InvalidArgumentException;
 use Contain\Manager\TypeManager;
-use ContainMapper\Cursor;
+use Contain\Cursor;
 use Traversable;
 
 /**
@@ -39,6 +39,11 @@ class Property
      * @var string
      */
     protected $type;
+
+    /**
+     * @var object
+     */
+    protected $typeObj;
 
     /**
      * @var mixed
@@ -244,6 +249,7 @@ class Property
      */
     public function setValue($value)
     {
+
         $this->currentValue = $this->getType()->export($value);
         return $this->save();
     }
@@ -371,7 +377,7 @@ class Property
      * getValue() for lists of entity types, which slow-hydrate entities from a
      * cursor. Changes to those entities should cycle back to the parent property.
      *
-     * @return \ContainMapper\Cursor|array
+     * @return \Contain\Cursor|array
      */
     public function getListEntityValue()
     {
@@ -380,10 +386,9 @@ class Property
         $parent       = $this->parent;
 
         if ($value instanceof Cursor) {
-            $value->getEventManager()->attach('hydrate', function ($event) use ($parent, $propertyName) {
-                $entity = $event->getTarget();
-                $parent->property($propertyName)->watch($entity, $event->getParam('index'));
-            }, -1000);
+            $value->setHydrator(function ($entity, $data, $index) use ($parent, $propertyName) {
+                $parent->property($propertyName)->watch($entity, $index);
+            });
         }
 
         return $value;
@@ -428,7 +433,6 @@ class Property
         if ($type instanceof Type\ListType) {
             return $this->getListValue();
         }
-
         return $type->parse($this->currentValue);
     }
 
@@ -538,10 +542,13 @@ class Property
      */
     public function getType()
     {
-        return $this->typeManager()->type(
-            $this->type,
-            $this->options
-        );
+        if(!$this->typeObj) {
+            $this->typeObj = $this->typeManager()->type(
+                $this->type,
+                $this->options
+            );
+        }
+        return $this->typeObj;
     }
 
     /**
@@ -562,14 +569,16 @@ class Property
      */
     public function setOptions($options)
     {
-        if (!is_array($options) && !$options instanceof Traversable) {
+        if (is_array($options)) {
+            $this->options = $options;
+        } elseif ($options instanceof Traversable) {
+            foreach ($options as $name => $value) {
+                $this->setOption($name, $value);
+            }
+        } else {
             throw new InvalidArgumentException(
                 '$options must be an instance of Traversable or an array.'
             );
-        }
-
-        foreach ($options as $name => $value) {
-            $this->setOption($name, $value);
         }
 
         return $this->save();

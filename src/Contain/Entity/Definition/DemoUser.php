@@ -17,40 +17,43 @@
  * @link        http://andrewkandels.com/contain
  */
 
-namespace Contain\Entity\Property\Type;
-
-use Zend\Filter\Boolean;
+namespace Contain\Entity\Definition;
 
 /**
- * String Data Type
+ * Demo definition for a basic User entity model.
  *
  * @category    akandels
  * @package     contain
  * @copyright   Copyright (c) 2013 Andrew P. Kandels (http://andrewkandels.com)
  * @license     http://www.opensource.org/licenses/bsd-license.php BSD License
  */
-class BooleanType extends StringType
+class DemoUser extends AbstractDefinition
 {
     /**
-     * {@inheritDoc}
+     * Sets up the entity properties.
+     *
+     * @return self
      */
-    public function parse($value)
+    public function setUp()
     {
-        if (class_exists('Zend\Filter\Boolean')) {
-            $filter = new Boolean(Boolean::TYPE_ALL);
-            return $filter->filter($value) ? '1' : '0';
-        }
-
-        return !in_array(strtolower($value), array(
-            'no', '0', 'false', '', 'nein', 'net', 'off', 'n', 'f',
-        ));
+        $this
+            ->registerTarget(AbstractDefinition::ENTITY, __DIR__ . '/..')
+            ->import('Contain\Entity\Definition\Timestampable')
+            ->registerMethod('name')
+            ->setProperty('firstName', 'string', array('required' => true))
+            ->setProperty('lastName',  'string', array('required' => true))
+        ;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns a concatenated first and last name, or whatever is presently set.
+     *
+     * @return  string
      */
-    public function export($value)
+    public function name()
     {
-        return $this->parse($value);
+        return implode(' ', array_filter(array($this->getFirstName(), $this->getLastName()), function ($a) {
+            return $a;
+        }));
     }
 }

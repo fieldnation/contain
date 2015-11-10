@@ -263,7 +263,7 @@ abstract class AbstractDefinition
      * @param string             $type    Data type (string, integer, etc.)
      * @param array|\Traversable $options Options
      *
-     * @return Property
+     * @return self
      */
     public function setProperty($name, $type, $options = null)
     {
@@ -284,6 +284,10 @@ abstract class AbstractDefinition
 
         $this->properties[$name] = $obj;
 
+        if ($alias = $obj->getOption('alias')) {
+            $this->setAlias($alias, $name);
+        }
+
         if ($this->getOption('auto_alias')) {
             $alias = preg_replace_callback('/(_[a-z])/', function ($letters) {
                 $letter = substr(array_shift($letters), 1, 1);
@@ -295,7 +299,7 @@ abstract class AbstractDefinition
             }
         }
 
-        return $obj;
+        return $this;
     }
 
     /**
