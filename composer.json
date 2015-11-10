@@ -1,5 +1,5 @@
 {
-    "name": "akandels/contain",
+    "name": "fieldnation/contain",
     "description": "Zend Framework 2 library for the passing and handling of rich data entities.",
     "type": "library",
     "keywords": [
@@ -25,7 +25,7 @@
         "phpunit/phpunit": "~4.0"
     },
     "suggest": {
-        "akandels/contain-mapper": "dev-master",
+        "fieldnation/contain-mapper": "dev-master",
         "zendframework/zend-filter": "~2.2",
         "zendframework/zend-form": "~2.2",
         "zendframework/zend-inputfilter": "~2.2",
